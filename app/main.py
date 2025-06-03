@@ -1,9 +1,6 @@
 from fastapi import FastAPI
-from app.src.api import endpoints
+from app.src.api.endpoints import router as contacts_router     
+    
+app = FastAPI(title="Contacts CRUD API")     
 
-app = FastAPI()
-app.include_router(endpoints.router)
-
-@app.get("/")
-async def root():
-    return {"message": "Вітаю! FastAPI працює чудово 2!"}  
+app.include_router(contacts_router) 
