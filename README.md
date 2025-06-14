@@ -32,4 +32,4 @@ uvicorn app.main:app --reload
 
 Відкрити документацію Swagger за адресою:
 
-http://127.0.0.1:8000/docs
+http://127.0.0.1:8000/docs# hw-10
