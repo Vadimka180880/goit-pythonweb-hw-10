@@ -1,10 +1,10 @@
-from app.src.models.models import User
-from app.src.schemas.user import UserCreate
+from app.src.databases.models import User
+from app.src.schemas.users import UserCreate
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from passlib.context import CryptContext
 from app.src.services.email import send_verification_email
-from app.src.auth.auth import create_access_token
+from app.src.services.auth import create_access_token
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

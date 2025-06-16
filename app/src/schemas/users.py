@@ -1,14 +1,14 @@
-from pydantic import BaseModel, EmailStr        
-class UserCreate(BaseModel):    
+from pydantic import BaseModel, EmailStr
+class UserCreate(BaseModel):
     email: EmailStr 
-    password: str
-class UserResponse(BaseModel):  
+    password: str   
+class UserResponse(BaseModel): 
     id: int
     email: EmailStr
     confirmed: bool = False
     avatar: str | None = None
-    class Config:    
-        orm_mode = True     
+    class Config:
+        from_attributes = True      
 class Token(BaseModel):
-    access_token: str   
-    token_type: str 
+    access_token: str
+    token_type: str
