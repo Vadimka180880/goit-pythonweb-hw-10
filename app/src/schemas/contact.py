@@ -5,11 +5,11 @@ class ContactBase(BaseModel):
     first_name: str
     last_name: str 
     email: EmailStr
-    phone_number: str
+    phone_number: str   
     birthday: date
     additional_info: str | None = None  
             
-class ContactCreate(ContactBase):
+class ContactCreate(ContactBase):   
     pass
     
 class ContactUpdate(BaseModel):

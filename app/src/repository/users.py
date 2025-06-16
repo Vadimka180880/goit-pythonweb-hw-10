@@ -23,3 +23,6 @@ async def create_user(user: UserCreate, db: AsyncSession):
     send_verification_email(user.email, token)
 
     return db_user
+
+async def get_user_by_email(email: str):
+        return await User.filter(email=email).first()

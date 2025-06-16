@@ -4,10 +4,10 @@ import cloudinary.api
 from fastapi import UploadFile
 from app.src.config.config import settings
 
-cloudinary.config(
+cloudinary.config(  
     cloud_name=settings.cloud_name,
     api_key=settings.cloud_api_key, 
-    api_secret=settings.cloud_api_secret,   
+    api_secret=settings.cloud_api_secret,       
     secure=True 
 )
 async def upload_avatar(file: UploadFile) -> str:

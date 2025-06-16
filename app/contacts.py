@@ -26,7 +26,7 @@ async def read_contacts(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    result = await db.execute(
+    result = await db.execute( 
         select(Contact)
         .where(Contact.user_id == current_user.id)
         .offset(skip)

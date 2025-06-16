@@ -5,10 +5,10 @@ class Settings(BaseSettings):
     sync_database_url: str = Field(..., env="SYNC_DATABASE_URL")
     async_database_url: str = Field(..., env="ASYNC_DATABASE_URL")
 
-    secret_key: str = "changeme"
-    algorithm: str = "HS256"
-    access_token_expire_minutes: int = 30
-
+    SECRET_KEY: str = "changeme"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    
     mail_username: str = ""
     mail_password: str = ""
     mail_from: str = "" 
