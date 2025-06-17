@@ -17,11 +17,11 @@ def get_password_hash(password: str) -> str:
 
 def create_access_token(data: dict, expires_delta: Optional[int] = None):
     to_encode = data.copy()     
-    expire = datetime.utcnow() +  timedelta(     
+    expire = datetime.utcnow() + timedelta(     
         minutes=expires_delta if expires_delta else 15
     )
     to_encode.update({"exp": expire})   
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.algorithm)
+    encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm) 
     return encoded_jwt
     
 from fastapi import Depends, HTTPException, status
@@ -36,7 +36,7 @@ async def get_current_user(token: str = Depends(security)):
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token.credentials, settings.SECRET_KEY, algorithms=[settings.algorithm])
+        payload = jwt.decode(token.credentials, settings.secret_key, algorithms=[settings.algorithm])  
         return payload
     except JWTError:
         raise credentials_exception
@@ -48,6 +48,6 @@ def decode_token(token: str):
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.algorithm])
+        return jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])  
     except JWTError:
         raise credentials_exception
