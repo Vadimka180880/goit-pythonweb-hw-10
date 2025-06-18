@@ -6,7 +6,7 @@ class UserResponse(BaseModel):
     id: int
     email: EmailStr
     confirmed: bool = False
-    avatar: str | None = None
+    avatar: str | None
     class Config:
         from_attributes = True      
 class Token(BaseModel):

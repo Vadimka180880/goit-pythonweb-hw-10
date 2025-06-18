@@ -1,7 +1,7 @@
 # app/src/databases/models.py
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Date
 from sqlalchemy.orm import relationship
-from app.src.databases.database import Base
+from app.src.database.database import Base
 class User(Base): 
     __tablename__ = "users"   
     id = Column(Integer, primary_key=True, index=True)  

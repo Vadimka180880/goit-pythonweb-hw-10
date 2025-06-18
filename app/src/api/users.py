@@ -7,8 +7,8 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi_limiter.depends import RateLimiter
 
-from app.src.databases.database import get_db
-from app.src.databases.models import User
+from app.src.database.database import get_db
+from app.src.database.models import User
 from app.src.schemas.users import UserResponse, UserCreate, Token
 from app.src.config.config import settings
 from app.src.services.cloudinary_service import upload_avatar

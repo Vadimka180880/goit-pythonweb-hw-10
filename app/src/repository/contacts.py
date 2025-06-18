@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete, or_, func
-from app.src.databases import models
+from app.src.database import models
 from app.src.schemas import ContactCreate, ContactUpdate 
 from datetime import date, timedelta 
     

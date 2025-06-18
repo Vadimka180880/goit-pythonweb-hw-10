@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_, func
-from app.src.databases import models 
+from app.src.database import models 
 from datetime import date, timedelta
 
 async def search_contacts(db: AsyncSession, query: str):     

@@ -1,3 +1,7 @@
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+
 import asyncio
 from logging.config import fileConfig
 
@@ -7,8 +11,8 @@ from alembic import context
 
 from app.src.config.config import settings
 
-from app.src import databases 
-from app.src.databases.models import Base
+from app.src import database 
+from app.src.database.models import Base
 
 config = context.config
 

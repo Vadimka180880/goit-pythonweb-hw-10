@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
-from app.src.databases.database import get_db
+from app.src.database.database import get_db
 from app.src.schemas import ContactCreate, ContactUpdate, ContactResponse
 from app.src.repository import contacts as repository_contacts
 
