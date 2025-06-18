@@ -12,7 +12,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    
+
 async def get_user_by_email(email: str, db: AsyncSession) -> User | None:
     result = await db.execute(select(User).where(User.email == email))
     return result.scalars().first()
@@ -62,3 +62,10 @@ async def update_user_avatar(user_id: int, avatar_url: str, db: AsyncSession) ->
         )
     
     return updated_user
+
+async def update_avatar(self, email: str, url: str):
+    user = await self.get_user_by_email(email)
+    user.avatar = url
+    await self.session.commit()
+    await self.session.refresh(user)
+    return user

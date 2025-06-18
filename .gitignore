@@ -5,3 +5,5 @@ __pycache__/
 alembic/versions/*.pyc
 .idea/
 .vscode/
+/static/avatars/*
+!/static/avatars/.gitkeep

@@ -1,13 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select  
 from app.src.database.database import get_db
 from app.src.database.models import Contact, User
 from app.src.schemas.contact import ContactCreate, ContactUpdate, ContactResponse
-from .auth import get_current_user
+from app.src.services.auth import get_current_user  
 
 router = APIRouter(prefix="/contacts", tags=["contacts"])
 
-@router.post("/", response_model=ContactResponse, status_code=201)
+@router.post("/", response_model=ContactResponse, status_code=status.HTTP_201_CREATED)
 async def create_contact(
     contact: ContactCreate,
     db: AsyncSession = Depends(get_db),
@@ -26,11 +27,10 @@ async def read_contacts(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    result = await db.execute( 
+    result = await db.execute(
         select(Contact)
         .where(Contact.user_id == current_user.id)
         .offset(skip)
         .limit(limit)
     )
     return result.scalars().all()
-

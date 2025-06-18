@@ -15,6 +15,10 @@ from app.src.services.email import send_verification_email
 from app.src.services.cloudinary_service import upload_avatar 
 from app.src.config.config import settings
 from app.src.database.models import User 
+from fastapi import UploadFile, File, Depends
+# from app.src.services.auth import auth_service
+from app.src.services.auth import get_current_user
+from app.src.services.auth import oauth2_scheme
 import logging
 
 router = APIRouter(tags=["auth"])
@@ -89,25 +93,19 @@ async def signup(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
 
 @router.patch("/avatar", response_model=UserResponse)
 async def update_avatar(
-    file: UploadFile = File(..., max_length=5_000_000),
+    file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Only images are allowed"
-        )
-
     try:
         avatar_url = await upload_avatar(file, current_user.email)
         updated_user = await update_user_avatar(current_user.id, avatar_url, db)
         return UserResponse.from_orm(updated_user)
-    except HTTPException:
+    except HTTPException as e:
         raise
     except Exception as e:
-        logger.error(f"Avatar upload error: {str(e)}")
+        logger.error(f"Update avatar error: {str(e)}", exc_info=True)
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            status_code=500,
+            detail="Помилка при оновленні аватара"
         )
