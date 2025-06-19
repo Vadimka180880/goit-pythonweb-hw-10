@@ -87,3 +87,34 @@ async def update_avatar(email: str, file: UploadFile, db: AsyncSession):
     
     return {"message": "Avatar updated successfully"}
 
+async def get_user_by_email(email: str, db: AsyncSession) -> Optional[User]:
+    """
+    Асинхронна функція для отримання користувача за email
+    """
+    result = await db.execute(select(User).where(User.email == email))
+    return result.scalars().first()
+
+async def reset_user_password(token: str, new_password: str, db: AsyncSession) -> Optional[User]:
+    """
+    Асинхронна функція для скидання паролю
+    """
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        if payload.get("type") != "password_reset":
+            return None
+        
+        email = payload.get("sub")
+        if not email:
+            return None        
+        
+        user = await get_user_by_email(email, db)
+        if not user:
+            return None
+        
+        user.hashed_password = pwd_context.hash(new_password)
+        await db.commit()
+        await db.refresh(user)
+        return user
+        
+    except JWTError:
+        return None

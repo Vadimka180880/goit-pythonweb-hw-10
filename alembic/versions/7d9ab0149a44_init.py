@@ -45,7 +45,6 @@ def downgrade() -> None:
     op.drop_column('users', 'verified')
     op.drop_column('users', 'updated_at')
     op.drop_column('users', 'created_at')
-    op.drop_constraint(None, 'contacts', type_='foreignkey')
     op.create_foreign_key(op.f('contacts_user_id_fkey'), 'contacts', 'users', ['user_id'], ['id'])
     op.alter_column('contacts', 'user_id',
                existing_type=sa.INTEGER(),
