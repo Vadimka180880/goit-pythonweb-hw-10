@@ -20,6 +20,7 @@ from app.src.services.email import send_verification_email, send_password_reset_
 from app.src.services.cloudinary_service import upload_avatar 
 from app.src.config.config import settings
 from app.src.database.models import User
+from app.src.database.redis import get_redis
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 logger = logging.getLogger(__name__)
@@ -52,11 +53,11 @@ async def login(
                 headers={"WWW-Authenticate": "Bearer"},
             )
             
-        if not user.confirmed:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Email not verified. Please check your email for verification link.",
-            )
+        # if not user.confirmed:
+        #     raise HTTPException(
+        #         status_code=status.HTTP_403_FORBIDDEN,
+        #         detail="Email not verified. Please check your email for verification link.",
+        #     )
 
         access_token = create_access_token(
             data={"sub": user.email},
