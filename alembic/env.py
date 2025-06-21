@@ -1,20 +1,32 @@
 import os
 import sys
 from pathlib import Path
+from dotenv import load_dotenv
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from alembic import context
 
+load_dotenv()
+
+pythonpath = os.getenv("PYTHONPATH")
+if pythonpath and pythonpath not in sys.path:
+    sys.path.insert(0, pythonpath)
+    print(f"Added PYTHONPATH from .env: {pythonpath}")
+
 project_root = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(project_root))
+print(f"Project root: {project_root}")
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+    print(f"Added to sys.path: {sys.path}")
 
 try:
+    from app.src.database.base import engine, Base
     from app.src.config.config import settings
-    from app.src.database.models import Base
+    print("Successfully imported engine, Base, and settings")
 except ImportError as e:
     print(f"Import error: {e}")
-    print("Current Python path:", sys.path)
+    print("Current sys.path:", sys.path)
     raise
 
 config = context.config
@@ -42,7 +54,7 @@ def run_migrations_offline():
 def run_migrations_online():
     """Run migrations in 'online' mode."""
     configuration = config.get_section(config.config_ini_section)
-    configuration['sqlalchemy.url'] = str(settings.sync_database_url)
+    configuration["sqlalchemy.url"] = str(settings.sync_database_url)
     
     connectable = engine_from_config(
         configuration,

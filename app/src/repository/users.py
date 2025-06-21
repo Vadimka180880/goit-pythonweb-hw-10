@@ -2,13 +2,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import update
 from passlib.context import CryptContext
-from app.src.database.models import User  # Змінено з database на database
+from app.src.database.models import User  
 from app.src.schemas.users import UserCreate
 from app.src.services.email import send_verification_email
 from app.src.services.auth import create_access_token
 from datetime import timedelta
 from fastapi import HTTPException
 import logging
+from sqlalchemy import select
+from app.src.database.models import User
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -69,3 +72,7 @@ async def update_avatar(self, email: str, url: str):
     await self.session.commit()
     await self.session.refresh(user)
     return user
+
+async def get_user_by_id(user_id: int, db: AsyncSession) -> Optional[User]:
+    result = await db.execute(select(User).filter_by(id=user_id))
+    return result.scalars().first()

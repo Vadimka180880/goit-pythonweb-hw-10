@@ -1,4 +1,5 @@
 import smtplib
+import ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from app.src.config.config import settings
@@ -7,6 +8,8 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import jwt
 from typing import Optional
+from functools import lru_cache 
+from email_validator import validate_email, EmailNotValidError
 
 logger = logging.getLogger(__name__)
 
@@ -31,25 +34,33 @@ async def send_email(
 ) -> bool:  
     """
     Універсальна функція для відправки email.
-    
-    :param email_to: Отримувач
-    :param subject: Тема листа
-    :param template_name: Назва HTML шаблону
-    :param template_vars: Словник зі змінними для шаблону
-    :param smtp_timeout: Таймаут підключення до SMTP
-    :return: Статус відправки (True/False)
-    """     
+    """
     try:
-        # Завантажуємо HTML шаблон
-        template_path = Path(__file__).parent / "templates" / template_name
-        with open(template_path, "r", encoding="utf-8") as file:
-            html_content = file.read()
-        
-        # Замінюємо плейсхолдери
+        # Валідація email
+        if not settings.mail_test_mode:
+            try:
+                valid = validate_email(email_to)
+                email_to = valid.email
+            except EmailNotValidError as e:
+                logger.error(f"Invalid email: {str(e)}")
+                return False 
+
+        # Перенаправлення для тестів
+        if settings.mail_test_mode:  
+            email_to = settings.mail_test_recipient  
+            logger.info(f"Test mode active. Redirecting email to {email_to}")  
+
+        # Завантаження шаблону
+        try:  
+            html_content = load_template(template_name)  
+        except Exception as e:  
+            logger.error(f"Failed to load template {template_name}: {str(e)}") 
+            return False  
+        # Заміна плейсхолдерів
         for key, value in template_vars.items():
             html_content = html_content.replace(f"{{{{{key}}}}}", str(value))
 
-        # Створюємо повідомлення
+        # Підготовка повідомлення
         msg = MIMEMultipart()
         msg["From"] = settings.mail_from
         msg["To"] = email_to
@@ -63,19 +74,24 @@ async def send_email(
             "timeout": smtp_timeout
         }
 
-        # Відправка з підтримкою SSL/TLS
+        # Відправка
         with smtplib.SMTP(**smtp_params) as server:
             if settings.mail_starttls:
                 server.starttls()
             server.login(settings.mail_username, settings.mail_password)
             server.send_message(msg)
         
-        logger.info(f"Email sent to {email_to} | Subject: {subject}")
+        logger.info(f"Email successfully sent to {email_to}")  
         return True 
 
-    except Exception as e:
-        logger.error(f"Failed to send email to {email_to}: {str(e)}", exc_info=True)
-        return False    
+    except smtplib.SMTPException as e:  
+        logger.error(f"SMTP error occurred: {str(e)}")  
+    except ssl.SSLError as e: 
+        logger.error(f"SSL error occurred: {str(e)}")  
+    except Exception as e:  
+        logger.error(f"Unexpected error: {str(e)}", exc_info=True)  
+    
+    return False
         
 async def send_verification_email(email: str, user_id: int) -> bool:
     """ 
@@ -126,3 +142,12 @@ def create_password_reset_token(email: str) -> str:
         "type": "password_reset"
     }
     return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
+
+@lru_cache(maxsize=32)
+def load_template(template_name: str) -> str:
+    """Завантажує і кешує HTML шаблон."""
+    template_path = Path(__file__).parent / "templates" / template_name
+    if not template_path.exists():
+        raise FileNotFoundError(f"Template not found: {template_path}")
+    with open(template_path, "r", encoding="utf-8") as file:
+        return file.read()

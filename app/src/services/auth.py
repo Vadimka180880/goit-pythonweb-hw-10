@@ -11,7 +11,7 @@ from app.src.config.config import settings
 from app.src.database.models import User  
 from app.src.database.database import get_db  
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/auth/login")
 security = HTTPBearer()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -24,16 +24,13 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    """Генерує JWT токен""" 
-    to_encode = data.copy() 
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
+    """Генерує JWT токен"""
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.access_token_expire_minutes))
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
+    return jwt.encode(to_encode, settings.secret_key, algorithm=settings.jwt_algorithm)
 
-async def get_current_user(
-    token: str = Depends(oauth2_scheme), 
-    db: AsyncSession = Depends(get_db)
-) -> User: 
+async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)) -> User:
     """Отримує поточного авторизованого користувача"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -41,7 +38,7 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.jwt_algorithm]) 
         email: str = payload.get("sub")
         if email is None:
             raise credentials_exception
@@ -59,7 +56,7 @@ async def get_current_user(
 def decode_token(token: str) -> Dict[str, Any]:
     """Декодує JWT токен"""
     try:
-        return jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        return jwt.decode(token, settings.secret_key, algorithms=[settings.jwt_algorithm])  
     except JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -95,11 +92,9 @@ async def get_user_by_email(email: str, db: AsyncSession) -> Optional[User]:
     return result.scalars().first()
 
 async def reset_user_password(token: str, new_password: str, db: AsyncSession) -> Optional[User]:
-    """
-    Асинхронна функція для скидання паролю
-    """
+    """Асинхронна функція для скидання паролю"""
     try:
-        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.jwt_algorithm])  
         if payload.get("type") != "password_reset":
             return None
         

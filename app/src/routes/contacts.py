@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.src.database import get_db
+from app.src.database.models import Contact, User
 from app.src.repository import contacts as repository_contacts
 from app.src.schemas import ContactCreate, ContactUpdate, ContactResponse
 from app.src.services.auth import get_current_user
-from app.src.database.models import User, Contact
+from app.src.database.models import User
+from app.src.repository.contacts import get_contact
 from datetime import date, timedelta
 from typing import List     
 
@@ -35,19 +37,24 @@ async def read_contacts(
     contacts = await repository_contacts.get_contacts(db, current_user.id, skip=skip, limit=limit)
     return contacts
 
-@router.get("/{contact_id}", response_model=ContactResponse)
-async def read_contact(  
-    contact_id: int, 
+@router.get(
+    "/{contact_id}",
+    response_model=ContactResponse,
+    summary="Get a contact by ID",
+    description="Retrieves a single contact by its ID. The contact must belong to the authenticated user."
+)
+async def read_contact(
+    contact_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Get a single contact by ID 
-    """
-    contact = await repository_contacts.get_contact(db, contact_id, current_user.id)
-    if contact is None: 
-        raise HTTPException(status_code=404, detail="Contact not found")
-    return contact  
+    contact = await get_contact(db, contact_id, current_user)
+    if contact is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Contact with ID {contact_id} not found or does not belong to user {current_user.email}. Please check the ID or your permissions."
+        )
+    return contact
 
 @router.put("/{contact_id}", response_model=ContactResponse)
 async def update_contact(
